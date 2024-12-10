@@ -24,7 +24,9 @@ class Trainer(object):
         self.model = model
         self.batch_size = batch_size
 
-        self.criterion = nn.CrossEntropyLoss()
+        # self.criterion = nn.CrossEntropyLoss()
+        self.criterion = nn.BCEWithLogitsLoss()
+        
         self.optimizer = torch.optim.SGD(model.parameters(),lr=lr)  ### WRITE YOUR CODE HERE
 
     def train_all(self, dataloader):
