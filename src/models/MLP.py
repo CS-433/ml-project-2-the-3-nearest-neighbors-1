@@ -9,18 +9,22 @@ class MLP(nn.Module):
     def __init__(self, size_image=400):
         super().__init__()
         
+        
         input_size = size_image*size_image*3
         output_size = size_image*size_image
-
-        self.fc1 = nn.Linear(input_size,200)
-        self.fc2 = nn.Linear(200,200)
-        self.fc3 = nn.Linear(200,200)
-        self.fc4 = nn.Linear(200,output_size)
+        
+        self.layers = torch.nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(input_size,500),
+            nn.ReLU(),
+            nn.Linear(500,500),
+            nn.ReLU(),
+            nn.Linear(500,output_size),
+            # nn.Sigmoid(),
+            nn.Unflatten(dim=1, unflattened_size=(1, size_image, size_image)),  
+        )
 
     def forward(self, x):
-        print(x.shape)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        preds = F.sigmoid(self.fc4(x))
-        return preds
+        return self.layers(x)
+
+

@@ -1,58 +1,35 @@
 import argparse
 import os, sys
-from src.data.preprocessing import *
+from src.preprocessing.preprocessing import *
 import matplotlib.pyplot as plt
 from src.models.MLP import MLP
 from src.models.Unet import UNet
 from src.models.CNN import RoadSegmentationCNN
 from src.models.trainer import Trainer
+from src.RoadSegmentationDataset import RoadSegmentationDataset
 import numpy as np
 
 DATA_PATH = "data/" 
-TRAINING_PATH = DATA_PATH + "training/"
-TRAINING_IMAGE_DIR = TRAINING_PATH + "images/"
-TRAINING_GT_DIR = TRAINING_PATH + "groundtruth/"
 NB_IMAGES_TRAINING = 20
 
 def main(args):
     
-    files = os.listdir(TRAINING_IMAGE_DIR)
-    nb_images = min(NB_IMAGES_TRAINING, len(files))
-    
-    imgs = [load_image(TRAINING_IMAGE_DIR + file) for file in files[:nb_images]]
-    gt_imgs = [load_image(TRAINING_GT_DIR + file) for file in files[:nb_images]]
-    
-    patch_size = 1
-    size_image = 400 // patch_size
-
-    # imgs = [img_crop(imgs[i], patch_size, patch_size) for i in range(nb_images)]
-    # gt_imgs = [img_crop(gt_imgs[i], patch_size, patch_size) for i in range(nb_images)]
-    
-    X_train = np.array(imgs)
-    print(X_train.shape)
-    y_train = np.array(gt_imgs)
-    print(y_train.shape)
-
-    # X_train = X_train.reshape((X_train.shape[0],-1))
-    # y_train = y_train.reshape((y_train.shape[0],-1))
-
-    model = RoadSegmentationCNN()
-    trainer = Trainer(model=model, lr=0.01, epochs=2, batch_size=12)
+    dataset = RoadSegmentationDataset(DATA_PATH, nb_image_training=NB_IMAGES_TRAINING)
+    X_train, X_test, y_train, y_test = dataset.get_XY()
+    model = MLP()
+    trainer = Trainer(model=model, lr=0.01, epochs=10, batch_size=100)
     trainer.fit(X_train,y_train)
-    
-    example = trainer.predict(np.array(X_train[:1])) 
-    print(example.shape)
-    print(example)
-    print(example >= .5)
-    print(np.array(y_train[:1]).reshape((size_image,size_image)))
 
-    f, axarr = plt.subplots(3,1) 
+    score_train = trainer.score(y_true=y_train, y_pred=trainer.predict(X_train))
+    score_test = trainer.score(y_true=y_test, y_pred=trainer.predict(X_test))
+    print(score_train)
+    print(score_test)
 
-    # use the created array to output your multiple images. In this case I have stacked 4 images vertically
-    axarr[0].imshow(np.array(X_train[:1]).reshape((size_image,size_image,3)))
-    axarr[1].imshow(example.reshape((size_image,size_image)))
-    axarr[2].imshow(np.array(y_train[:1]).reshape((size_image,size_image)))
+    imgs_show = [0,1,2]
+    conc_img = concat_images(X_train[imgs_show], y_train[imgs_show], trainer.predict(X_train[imgs_show]) >= .5)
+    plt.imshow(conc_img[0])
     plt.show()
+
 
 
 if __name__ == "__main__":

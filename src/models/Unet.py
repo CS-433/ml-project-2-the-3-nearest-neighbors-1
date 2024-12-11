@@ -31,15 +31,14 @@ class UNet(nn.Module):
 
     def conv_block(self, in_channels, out_channels):
         return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=9, padding=4),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=9, padding=4),
             nn.ReLU(inplace=True)
         )
 
     def forward(self, x):
-        x = x.permute(0,3,1,2)
-        print(x.shape)
+
         enc1 = self.enc1(x)
         enc2 = self.enc2(F.max_pool2d(enc1, 2))
         enc3 = self.enc3(F.max_pool2d(enc2, 2))
@@ -61,6 +60,6 @@ class UNet(nn.Module):
         up1 = self.upconv1(dec2)
         dec1 = self.dec1(torch.cat((up1, enc1), dim=1))
 
-        print("shape : ",torch.sigmoid(self.final_conv(dec1)).squeeze(1).shape)
-        return torch.sigmoid(self.final_conv(dec1)).squeeze(1)
+        print("shape : ",torch.sigmoid(self.final_conv(dec1)).shape)
+        return torch.sigmoid(self.final_conv(dec1))
 
