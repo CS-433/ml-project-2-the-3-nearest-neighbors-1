@@ -27,6 +27,7 @@ class Trainer(object):
         # self.criterion = nn.CrossEntropyLoss()
         self.criterion = nn.BCEWithLogitsLoss()
         
+        print(model.parameters())
         self.optimizer = torch.optim.SGD(model.parameters(),lr=lr)  ### WRITE YOUR CODE HERE
 
     def train_all(self, dataloader):

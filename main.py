@@ -4,9 +4,9 @@ from src.data.preprocessing import *
 import matplotlib.pyplot as plt
 from src.models.MLP import MLP
 from src.models.Unet import UNet
+from src.models.CNN import RoadSegmentationCNN
 from src.models.trainer import Trainer
 import numpy as np
-
 
 DATA_PATH = "data/" 
 TRAINING_PATH = DATA_PATH + "training/"
@@ -36,7 +36,7 @@ def main(args):
     # X_train = X_train.reshape((X_train.shape[0],-1))
     # y_train = y_train.reshape((y_train.shape[0],-1))
 
-    model = UNet()
+    model = RoadSegmentationCNN()
     trainer = Trainer(model=model, lr=0.01, epochs=2, batch_size=12)
     trainer.fit(X_train,y_train)
     
