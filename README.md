@@ -40,7 +40,6 @@ This repository contains all the source codes and results files we created for t
             RoadBackgroundClassifierCNN.py
             trainer.py
             Unet.py
-            ViT.py
             __init__.py
 ```
 
