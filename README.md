@@ -1,4 +1,4 @@
-# CS 433 - Machine Learning Class Project 1 : Cardiovascular Diseases Detection
+# CS 433 - Machine Learning Class Project 1 : Road Segmentation
 ## Team name : The 3 Nearest Neighbors
 ### Authors : BOYER Benjamin, GOYBET François, NIELLY Gauthier
 
