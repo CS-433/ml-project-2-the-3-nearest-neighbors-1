@@ -21,7 +21,7 @@ This repository contains all the source codes and results files we created for t
 │   │
 │   └───gm
 │
-└───generated
+├───generated
 |   |
 │   └───models
 │
@@ -56,7 +56,7 @@ conda create -n roadsegmentation pip
 
 Then, you need to download the project dataset and store it in the same repertory, under :
 ```
-data\
+data\rs
 ```
 
 Finally, you can run the main.py script :
