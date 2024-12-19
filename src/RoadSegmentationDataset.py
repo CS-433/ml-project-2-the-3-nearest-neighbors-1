@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 TRAINING_PATH_RS = "training/"
 TRAINING_IMAGE_DIR_RS = TRAINING_PATH_RS + "images/"
 TRAINING_GT_DIR_RS = TRAINING_PATH_RS + "groundtruth/"
+TESTING_PATH = "test_set_images/"
 
 TRAINING_PATH_GM = "train/"
 TRAINING_IMAGE_DIR_GM = TRAINING_PATH_GM + "images/"
@@ -50,7 +51,9 @@ class RoadSegmentationDataset:
         self.imgs_gm = [resize_image(np.array(img), new_size=img_size) for img in self.imgs_gm]
         self.gt_imgs_gm = [resize_image(np.array(gt_img), new_size=img_size) for gt_img in self.gt_imgs_gm]
 
-
+        # test
+        self.test_imgs = [load_image(data_path_rs + TESTING_PATH + f'test_{i}/test_{i}' + '.png') for i in range(1, 51)]
+ 
     def get_XY(self, val_size=0.2, include_gm=False, patch_size=None):
 
         X = self.imgs_rs
@@ -72,3 +75,5 @@ class RoadSegmentationDataset:
         y = (np.expand_dims(np.array(y), axis=1) >= 0.5).astype(float) # convert in binary array of shape (nb_images, 1, img_size, img_size)
         return train_test_split(X, y, test_size=val_size, random_state=42)
     
+    def get_test(self):
+        return np.array(self.test_imgs).transpose(0,3,1,2)

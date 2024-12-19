@@ -60,7 +60,7 @@ def mask_to_submission_strings(mask, img_number):
         for i in range(0, mask.shape[1], patch_size):
             patch = mask[:, i:i + patch_size, j:j + patch_size]
             label = patch_to_label(patch)
-            yield("{:03d}{}{},{}".format(img_number, j, i, label))
+            yield("{:03d}_{}_{},{}".format(img_number, j, i, label))
 
 
 def masks_to_submission(submission_filename, test_masks):
