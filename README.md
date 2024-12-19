@@ -1,4 +1,4 @@
-# CS 433 - Machine Learning Class Project 1 : Road Segmentation
+# CS 433 - Machine Learning Class Project 2 : Road Segmentation
 ## Team name : The 3 Nearest Neighbors
 ### Authors : BOYER Benjamin, GOYBET François, NIELLY Gauthier
 
@@ -12,12 +12,18 @@ This repository contains all the source codes and results files we created for t
 │
 ├───data
 │   │
-│   ├───test_set_images
+|   ├───rs
+|   │   │
+|   │   ├───test_set_images
+|   │   │ 
+|   │   |
+|   │   └───training
 │   │
-│   └───training
-│       ├───groundtruth
-│       │
-│       └───images
+│   └───gm
+│
+└───generated
+|   |
+│   └───models
 │
 ├───notebooks
 │       segment_aerial_images.ipynb

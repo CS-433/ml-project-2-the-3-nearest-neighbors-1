@@ -36,7 +36,7 @@ def main(args):
     # ##############################
     # #######     Patch      #######  
     # ##############################  
-    # X_train, X_val, y_train, y_val = dataset.get_XY(val_size=0.10, include_gm=False, patch_size=16)
+    X_train, X_val, y_train, y_val = dataset.get_XY(val_size=0.10, include_gm=False, patch_size=16)
     
     # ####################
     # ### Patch LogReg ###
