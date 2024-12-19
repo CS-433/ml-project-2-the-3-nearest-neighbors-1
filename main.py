@@ -2,34 +2,132 @@ import argparse
 import os, sys
 from src.preprocessing.preprocessing import *
 import matplotlib.pyplot as plt
-from src.models.MLP import MLP
-from src.models.Unet import UNet
-from src.models.CNN import RoadSegmentationCNN
-from src.models.trainer import Trainer
+from src.models import *
 from src.RoadSegmentationDataset import RoadSegmentationDataset
 import numpy as np
+import joblib
 
-DATA_PATH = "data/" 
-NB_IMAGES_TRAINING = 20
+DATA_PATH_RS = "data/rs/"
+TRAINING_PATH_RS = "training/"
+TRAINING_IMAGE_DIR_RS = TRAINING_PATH_RS + "images/"
+TRAINING_GT_DIR_RS = TRAINING_PATH_RS + "groundtruth/"
+
+DATA_PATH_GM = "data/gm/"
+TRAINING_PATH_GM = "train/"
+TRAINING_IMAGE_DIR_GM = TRAINING_PATH_GM + "images/"
+TRAINING_GT_DIR_GM = TRAINING_PATH_GM + "label/"
+
+NB_IMAGES_TRAINING_RS = 2
+NB_IMAGES_TRAINING_GM = 2
+
+GENERATED_MODELS_PATH = "generated/models/"
 
 def main(args):
-    
-    dataset = RoadSegmentationDataset(DATA_PATH, nb_image_training=NB_IMAGES_TRAINING)
-    X_train, X_test, y_train, y_test = dataset.get_XY()
+        
+    # Load Dataset
+    dataset = RoadSegmentationDataset(
+        DATA_PATH_RS, 
+        DATA_PATH_GM, 
+        nb_image_training_rs=NB_IMAGES_TRAINING_RS,
+        nb_image_training_gm=NB_IMAGES_TRAINING_GM,
+    )
+
+
+    # Patch
+    X_train, X_val, y_train, y_val = dataset.get_XY(val_size=0.10, include_gm=False, patch_size=16)
+
+    # Patch : LogReg
+    print("Patch : LogReg")
+    model_logReg = LogReg_patch()
+    model_logReg.fit(X_train, y_train)
+    score_logReg_patch = score(y_val, model_logReg.predict(X_val))
+    joblib.dump(model_logReg,GENERATED_MODELS_PATH+"patch_logreg")
+    print(score_logReg_patch)
+    with open(GENERATED_MODELS_PATH + "Patch_LogReg_result.txt", "w") as f:
+        f.write(str(score_logReg_patch))
+
+
+    # Patch : MLP
+    print("Patch : MLP")
+    model_MLP_patch = MLP_patch()
+    model_MLP_patch.fit(X_train, y_train)
+    score_MLP_patch = score(y_val, model_MLP_patch.predict(X_val))
+    joblib.dump(model_MLP_patch,GENERATED_MODELS_PATH+"patch_mlp")
+    print(score_MLP_patch)
+    with open(GENERATED_MODELS_PATH + "Patch_MLP_result.txt", "w") as f:
+        f.write(str(score_MLP_patch))
+
+    # Patch : CNN
+    print("Patch : CNN")
+    model_CNN_patch = RoadBackgroundClassifierCNN()
+    trainer_CNN_patch = Trainer(
+        model=model_CNN_patch, 
+        lr=5e-4, 
+        weight_decay=1e-4, 
+        epochs=20, 
+        batch_size=128, 
+    )
+    history_CNN_patch = trainer_CNN_patch.fit(X_train,y_train, X_val, y_val)
+    score_CNN_patch = trainer_CNN_patch.score(y_val, trainer_CNN_patch.predict(X_val)>=.5)
+    joblib.dump(trainer_CNN_patch,GENERATED_MODELS_PATH + "patch_cnn_epoch_50_batch_128")
+    print(score_CNN_patch)
+    with open(GENERATED_MODELS_PATH + "Patch_MLP_result.txt", "w") as f:
+        f.write(str(score_CNN_patch))
+
+
+    # Holistic
+    X_train, X_val, y_train, y_val = dataset.get_XY(val_size=0.10, include_gm=False)
+
+    # Holistic : MLP
+    print("Holistic : MLP")
     model = MLP()
-    trainer = Trainer(model=model, lr=0.01, epochs=10, batch_size=100)
-    trainer.fit(X_train,y_train)
+    trainer_MLP_holistic = Trainer(
+        model=model, 
+        lr=5e-4, 
+        weight_decay=1e-4, 
+        epochs=50, 
+        batch_size=5, 
+    )
+    history_MLP_holistic = trainer_MLP_holistic.fit(X_train,y_train, X_val, y_val)
+    score_MLP_holistic = trainer_MLP_holistic.score(y_val, trainer_MLP_holistic.predict(X_val)>=.5)
+    joblib.dump(trainer_MLP_holistic,GENERATED_MODELS_PATH+"holistic_mlp_epoch_50_batch_5")
+    print(score_MLP_holistic)
+    with open(GENERATED_MODELS_PATH + "Holistic_MLP_result.txt", "w") as f:
+        f.write(str(score_MLP_holistic))
 
-    score_train = trainer.score(y_true=y_train, y_pred=trainer.predict(X_train))
-    score_test = trainer.score(y_true=y_test, y_pred=trainer.predict(X_test))
-    print(score_train)
-    print(score_test)
+    # Holistic : CNN
+    print("Holistic : CNN")
+    model = EncoderDecoderCNN()
+    trainer_CNN_holistic = Trainer(
+        model=model, 
+        lr=5e-4, 
+        weight_decay=1e-4, 
+        epochs=50, 
+        batch_size=5, 
+    )
+    history_CNN_holistic = trainer_CNN_holistic.fit(X_train,y_train, X_val, y_val)
+    score_CNN_holistic = trainer_CNN_holistic.score(y_val, trainer_CNN_holistic.predict(X_val)>=.5)
+    joblib.dump(trainer_CNN_holistic,GENERATED_MODELS_PATH+"holistic_cnn_epoch_50_batch_5")
+    print(score_CNN_holistic)
+    with open(GENERATED_MODELS_PATH + "Holistic_CNN_result.txt", "w") as f:
+        f.write(str(score_CNN_holistic))
 
-    imgs_show = [0,1,2]
-    conc_img = concat_images(X_train[imgs_show], y_train[imgs_show], trainer.predict(X_train[imgs_show]) >= .5)
-    plt.imshow(conc_img[0])
-    plt.show()
-
+    # Holistic : Unet
+    print("Holistic : Unet")
+    model = UNet()
+    trainer_UNET_holistic = Trainer(
+        model=model, 
+        lr=5e-4, 
+        weight_decay=1e-4, 
+        epochs=50, 
+        batch_size=5, 
+    )
+    history_UNET_holistic = trainer_UNET_holistic.fit(X_train,y_train, X_val, y_val)
+    score_UNET_holistic = trainer_UNET_holistic.score(y_val, trainer_UNET_holistic.predict(X_val)>=.5)
+    joblib.dump(trainer_UNET_holistic,GENERATED_MODELS_PATH+"holistic_unet_epoch_50_batch_5_rs")
+    print(score_UNET_holistic)
+    with open(GENERATED_MODELS_PATH + "Holistic_UNet_result.txt", "w") as f:
+        f.write(str(score_UNET_holistic))
 
 
 if __name__ == "__main__":
